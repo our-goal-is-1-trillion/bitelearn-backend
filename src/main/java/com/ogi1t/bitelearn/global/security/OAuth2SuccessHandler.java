@@ -2,7 +2,6 @@ package com.ogi1t.bitelearn.global.security;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.ogi1t.bitelearn.domain.auth.entity.RefreshToken;
-import com.ogi1t.bitelearn.domain.auth.dto.response.TokenResponse;
 import com.ogi1t.bitelearn.domain.auth.repository.RefreshTokenRepository;
 import com.ogi1t.bitelearn.domain.user.entity.User;
 import com.ogi1t.bitelearn.domain.user.repository.UserRepository;
@@ -13,6 +12,9 @@ import java.io.IOException;
 import java.time.LocalDateTime;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.beans.factory.annotation.Value;
+import org.springframework.http.HttpHeaders;
+import org.springframework.http.ResponseCookie;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.web.authentication.SimpleUrlAuthenticationSuccessHandler;
 import org.springframework.stereotype.Component;
@@ -26,6 +28,9 @@ public class OAuth2SuccessHandler extends SimpleUrlAuthenticationSuccessHandler 
   private final RefreshTokenRepository refreshTokenRepository;
   private final UserRepository userRepository;
   private final ObjectMapper objectMapper;
+
+  @Value("${app.frontend-redirect-url}")
+  private String frontendRedirectUrl;
 
   @Override
   public void onAuthenticationSuccess(HttpServletRequest request, HttpServletResponse response, Authentication authentication) throws IOException, ServletException {
@@ -60,17 +65,19 @@ public class OAuth2SuccessHandler extends SimpleUrlAuthenticationSuccessHandler 
         .expiredAt(LocalDateTime.now().plusDays(14))
         .build());
 
-    // 5. 응답 전송 (JSON으로 뿌려주기)
-    // 실제 운영 시에는 프론트엔드 URL로 리다이렉트(sendRedirect) 해야 함
-    // response.sendRedirect("http://localhost:3000/oauth/callback?access=" + accessToken);
-    response.setContentType("application/json;charset=UTF-8");
-    TokenResponse tokenResponse = TokenResponse.builder()
-        .grantType("Bearer")
-        .accessToken(accessToken)
-        .refreshToken(refreshToken)
-        .accessTokenExpiresIn(jwtProvider.getAccessTokenExpirationTime())
+    // 쿠키 설정
+    // 1. Refresh Token을 HttpOnly 쿠키로 설정
+    ResponseCookie cookie = ResponseCookie.from("refreshToken", refreshToken)
+        .maxAge(14 * 24 * 60 * 60) // 14일
+        .path("/")
+        .secure(false) // HTTPS 적용 시 true로 변경 필수
+        .sameSite("Lax") // 프론트/백엔드 도메인 상황에 따라 None 또는 Strict로 변경
+        .httpOnly(true)
         .build();
+    response.addHeader(HttpHeaders.SET_COOKIE, cookie.toString());
 
-    response.getWriter().write(objectMapper.writeValueAsString(tokenResponse));
+    // 2. Access Token을 쿼리 파라미터에 담아서 프론트엔드로 리다이렉트
+    String targetUrl = frontendRedirectUrl + accessToken;
+    getRedirectStrategy().sendRedirect(request, response, targetUrl);
   }
 }

@@ -2,7 +2,6 @@ package com.ogi1t.bitelearn.domain.auth.service;
 
 import com.ogi1t.bitelearn.domain.auth.dto.request.LoginRequest;
 import com.ogi1t.bitelearn.domain.auth.dto.request.SignupRequest;
-import com.ogi1t.bitelearn.domain.auth.dto.request.TokenRefreshRequest;
 import com.ogi1t.bitelearn.domain.auth.dto.response.TokenResponse;
 import com.ogi1t.bitelearn.domain.auth.entity.RefreshToken;
 import com.ogi1t.bitelearn.domain.auth.entity.enums.ProviderType;
@@ -93,12 +92,12 @@ public class AuthService {
 
   // 3. 토큰 재발급
   @Transactional
-  public TokenResponse refresh(TokenRefreshRequest request) {
-    if (!jwtProvider.validateRefreshToken(request.getRefreshToken())) {
+  public TokenResponse refresh(String refreshToken) {
+    if (!jwtProvider.validateRefreshToken(refreshToken)) {
       throw new BusinessException(AuthErrorCode.INVALID_REFRESH_TOKEN);
     }
 
-    RefreshToken storedToken = refreshTokenRepository.findByToken(request.getRefreshToken())
+    RefreshToken storedToken = refreshTokenRepository.findByToken(refreshToken)
         .orElseThrow(() -> new BusinessException(AuthErrorCode.INVALID_REFRESH_TOKEN));
 
     User user = userRepository.findById(storedToken.getUserId())

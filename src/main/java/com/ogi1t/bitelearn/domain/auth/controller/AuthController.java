@@ -4,6 +4,8 @@ import com.ogi1t.bitelearn.domain.auth.dto.request.LoginRequest;
 import com.ogi1t.bitelearn.domain.auth.dto.request.SignupRequest;
 import com.ogi1t.bitelearn.domain.auth.dto.response.TokenResponse;
 import com.ogi1t.bitelearn.domain.auth.service.AuthService;
+import com.ogi1t.bitelearn.global.exception.BusinessException;
+import com.ogi1t.bitelearn.global.exception.domain.AuthErrorCode;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.servlet.http.HttpServletResponse;
@@ -50,15 +52,14 @@ public class AuthController {
       @CookieValue(name = "refreshToken", required = false) String refreshToken,
       HttpServletResponse response) {
 
-    if (refreshToken == null) {
-      throw new IllegalArgumentException("Refresh Token이 없습니다."); // 적절한 BusinessException으로 변경
+    // 1. 쿠키 자체가 없는 비회원일 경우
+    if (refreshToken == null || refreshToken.isEmpty()) {
+      throw new BusinessException(AuthErrorCode.INVALID_REFRESH_TOKEN);
     }
 
-    TokenResponse tokenResponse = authService.refresh(refreshToken); // DTO 대신 String을 바로 넘김
+    TokenResponse tokenResponse = authService.refresh(refreshToken);
 
-    // 재발급된 Refresh Token으로 쿠키 갱신
     setRefreshTokenCookie(response, tokenResponse.getRefreshToken(), 14 * 24 * 60 * 60);
-
     return ResponseEntity.ok(tokenResponse);
   }
 
@@ -83,8 +84,8 @@ public class AuthController {
     ResponseCookie cookie = ResponseCookie.from("refreshToken", refreshToken)
         .maxAge(maxAge)
         .path("/")
-        .secure(false) // HTTPS일 경우 true
-        .sameSite("Lax")
+        .secure(true) // HTTPS 이므로 true
+        .sameSite("None") // HTTPS 이므로 None 설정 가능
         .httpOnly(true)
         .build();
     response.addHeader(HttpHeaders.SET_COOKIE, cookie.toString());

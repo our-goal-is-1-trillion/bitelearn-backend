@@ -93,16 +93,20 @@ public class AuthService {
   // 3. 토큰 재발급
   @Transactional
   public TokenResponse refresh(String refreshToken) {
-    if (!jwtProvider.validateRefreshToken(refreshToken)) {
-      throw new BusinessException(AuthErrorCode.INVALID_REFRESH_TOKEN);
-    }
+    // 1. 검증 시도
+    // JwtProvider.validateRefreshToken 내부에서 BusinessException을 던지기 때문에
+    // 여기서 별도의 if문으로 throw를 던질 필요가 없습니다. (메서드 실행 자체가 검증임)
+    jwtProvider.validateRefreshToken(refreshToken);
 
+    // 2. DB에서 저장된 토큰인지 확인
     RefreshToken storedToken = refreshTokenRepository.findByToken(refreshToken)
         .orElseThrow(() -> new BusinessException(AuthErrorCode.INVALID_REFRESH_TOKEN));
 
+    // 3. 유저 존재 확인
     User user = userRepository.findById(storedToken.getUserId())
         .orElseThrow(() -> new BusinessException(AuthErrorCode.USER_NOT_FOUND));
 
+    // 4. 새로운 토큰들 생성
     String newAccessToken = jwtProvider.createAccessToken(
         user.getId(),
         user.getEmail(),
@@ -111,6 +115,7 @@ public class AuthService {
     );
     String newRefreshToken = jwtProvider.createRefreshToken(user.getId());
 
+    // 5. 기존 토큰 삭제 후 새 토큰 저장
     refreshTokenRepository.delete(storedToken);
     refreshTokenRepository.save(RefreshToken.builder()
         .userId(user.getId())

@@ -4,6 +4,8 @@ import com.ogi1t.bitelearn.domain.auth.service.CustomOAuth2UserService;
 import com.ogi1t.bitelearn.global.security.JwtAuthenticationFilter;
 import com.ogi1t.bitelearn.global.security.JwtProvider;
 import com.ogi1t.bitelearn.global.security.OAuth2SuccessHandler;
+import java.util.Arrays;
+import java.util.List;
 import lombok.RequiredArgsConstructor;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
@@ -15,6 +17,9 @@ import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.security.web.SecurityFilterChain;
 import org.springframework.security.web.authentication.UsernamePasswordAuthenticationFilter;
+import org.springframework.web.cors.CorsConfiguration;
+import org.springframework.web.cors.CorsConfigurationSource;
+import org.springframework.web.cors.UrlBasedCorsConfigurationSource;
 
 @Configuration
 @EnableWebSecurity
@@ -33,9 +38,11 @@ public class SecurityConfig {
   @Bean
   public SecurityFilterChain filterChain(HttpSecurity http) throws Exception {
     http
+        .cors(cors -> cors.configurationSource(corsConfigurationSource())) // ⭐ CORS 설정 적용
         .csrf(AbstractHttpConfigurer::disable) // REST API이므로 csrf 보안 필요 없음
         .httpBasic(AbstractHttpConfigurer::disable) // 기본 인증 로그인 비활성화
         .formLogin(AbstractHttpConfigurer::disable) // 기본 폼 로그인 비활성화
+        .sessionManagement(session -> session.sessionCreationPolicy(SessionCreationPolicy.STATELESS))
 
         // 세션을 사용하지 않음 (Stateless)
         .sessionManagement(session -> session.sessionCreationPolicy(SessionCreationPolicy.STATELESS))
@@ -70,5 +77,33 @@ public class SecurityConfig {
         .addFilterBefore(new JwtAuthenticationFilter(jwtProvider), UsernamePasswordAuthenticationFilter.class);
 
     return http.build();
+  }
+
+  // ⭐ CORS 상세 설정 Bean 추가
+  @Bean
+  public CorsConfigurationSource corsConfigurationSource() {
+    CorsConfiguration configuration = new CorsConfiguration();
+
+    // 프론트엔드 로컬과 배포 주소 모두 허용
+    configuration.setAllowedOrigins(Arrays.asList(
+        "http://localhost:5173",
+        "https://bitelearn.vercel.app"
+    ));
+
+    // 허용할 HTTP 메서드
+    configuration.setAllowedMethods(Arrays.asList("GET", "POST", "PUT", "PATCH", "DELETE", "OPTIONS"));
+
+    // 허용할 헤더
+    configuration.setAllowedHeaders(List.of("*"));
+
+    // ⭐ 쿠키 등 인증 정보를 주고받을 수 있도록 허용
+    configuration.setAllowCredentials(true);
+
+    // 클라이언트가 응답 헤더 중 Authorization 등을 볼 수 있도록 노출
+    configuration.setExposedHeaders(Arrays.asList("Authorization", "Set-Cookie"));
+
+    UrlBasedCorsConfigurationSource source = new UrlBasedCorsConfigurationSource();
+    source.registerCorsConfiguration("/**", configuration); // 모든 API 경로에 이 설정 적용
+    return source;
   }
 }

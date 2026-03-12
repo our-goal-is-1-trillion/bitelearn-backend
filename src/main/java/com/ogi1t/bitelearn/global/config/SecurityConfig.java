@@ -54,7 +54,7 @@ public class SecurityConfig {
                 "/index.html/**",
                 "/ws-stomp/**",
                 "/auth/**", // 소셜 관련 경로 허용
-                "/api/auth/**", // 소셜 관련 경로 허용
+                "/auth/**", // 소셜 관련 경로 허용
                 "/login/**", // 소셜 관련 경로 허용
                 "/oauth2/**", // 소셜 관련 경로 허용
                 "/v3/api-docs/**", // 스웨거

@@ -26,7 +26,7 @@ public class SwaggerConfig {
 
     return new OpenAPI()
         .info(new Info()
-            .title("404Jerry API 명세서")
+            .title("Bitelearn API 명세서")
             .description("스프링 부트 API 명세서입니다.")
             .version("v1.0.0"))
         .addSecurityItem(securityRequirement)

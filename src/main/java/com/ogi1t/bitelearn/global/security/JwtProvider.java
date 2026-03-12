@@ -2,6 +2,8 @@ package com.ogi1t.bitelearn.global.security;
 
 import com.ogi1t.bitelearn.domain.auth.entity.enums.ProviderType;
 import com.ogi1t.bitelearn.domain.user.entity.User;
+import com.ogi1t.bitelearn.global.exception.BusinessException;
+import com.ogi1t.bitelearn.global.exception.domain.AuthErrorCode;
 import io.jsonwebtoken.Claims;
 import io.jsonwebtoken.ExpiredJwtException;
 import io.jsonwebtoken.Jwts;
@@ -105,8 +107,20 @@ public class JwtProvider {
     return validateToken(token, accSecretKey);
   }
 
-  public boolean validateRefreshToken(String token) {
-    return validateToken(token, refSecretKey);
+  public void validateRefreshToken(String token) {
+    if (token == null || token.trim().isEmpty()) {
+      throw new BusinessException(AuthErrorCode.INVALID_REFRESH_TOKEN);
+    }
+
+    try {
+      Jwts.parserBuilder().setSigningKey(refSecretKey).build().parseClaimsJws(token);
+    } catch (SecurityException | MalformedJwtException | UnsupportedJwtException | IllegalArgumentException e) {
+      log.warn("유효하지 않은 JWT 토큰입니다: {}", e.getMessage());
+      throw new BusinessException(AuthErrorCode.INVALID_REFRESH_TOKEN);
+    } catch (ExpiredJwtException e) {
+      log.info("만료된 JWT 토큰입니다.");
+      throw new BusinessException(AuthErrorCode.EXPIRED_REFRESH_TOKEN);
+    }
   }
 
   private boolean validateToken(String token, SecretKey secretKey) {

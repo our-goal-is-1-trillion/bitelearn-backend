@@ -3,6 +3,7 @@ package com.ogi1t.bitelearn.domain.auth.repository;
 import com.ogi1t.bitelearn.domain.auth.entity.RefreshToken;
 import java.util.Optional;
 import org.springframework.data.jpa.repository.JpaRepository;
+import org.springframework.transaction.annotation.Transactional;
 
 public interface RefreshTokenRepository extends JpaRepository<RefreshToken, Long> {
 
@@ -13,5 +14,6 @@ public interface RefreshTokenRepository extends JpaRepository<RefreshToken, Long
   Optional<RefreshToken> findByUserId(Long userId);
 
   // 특정 유저의 refresh token 삭제
+  @Transactional
   void deleteByUserId(Long userId);
 }

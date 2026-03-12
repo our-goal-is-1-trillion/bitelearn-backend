@@ -38,6 +38,13 @@ public class UserService {
     user.updateNickname(newNickname);
   }
 
+  // 3. 온보딩 완료 처리
+  @Transactional
+  public void completeOnboarding(Long userId) {
+    User user = findUserById(userId);
+    user.completeOnboarding(); // 상태를 true로 변경
+  }
+
   // 공통 유저 조회 메서드
   private User findUserById(Long userId) {
     return userRepository.findById(userId)

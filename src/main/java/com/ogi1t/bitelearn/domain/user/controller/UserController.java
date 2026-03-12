@@ -37,4 +37,11 @@ public class UserController {
     userService.updateNickname(principal.getUserId(), request);
     return ResponseEntity.ok("닉네임이 성공적으로 변경되었습니다.");
   }
+
+  @Operation(summary = "온보딩 완료 처리", description = "로그인한 사용자의 온보딩 완료 상태를 true로 변경합니다.")
+  @PatchMapping("/me/onboarding")
+  public ResponseEntity<String> completeOnboarding(@AuthenticationPrincipal CustomPrincipal principal) {
+    userService.completeOnboarding(principal.getUserId());
+    return ResponseEntity.ok("온보딩이 완료 처리되었습니다.");
+  }
 }

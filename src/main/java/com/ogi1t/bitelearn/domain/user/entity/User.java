@@ -56,8 +56,18 @@ public class User {
   @LastModifiedDate
   private LocalDateTime updatedAt;
 
+  // 온보딩 완료 여부 추가 (기본값 false)
+  @Column(nullable = false)
+  @Builder.Default
+  private boolean isOnboardingCompleted = false;
+
   // 닉네임 변경 편의 메서드
   public void updateNickname(String newNickname) {
     this.nickname = newNickname;
+  }
+
+  // 온보딩 완료 편의 메서드 추가
+  public void completeOnboarding() {
+    this.isOnboardingCompleted = true;
   }
 }

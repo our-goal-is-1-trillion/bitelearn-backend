@@ -86,6 +86,7 @@ public class SecurityConfig {
 
     // 프론트엔드 로컬과 배포 주소 모두 허용
     configuration.setAllowedOrigins(Arrays.asList(
+        "https://www.bitelearn.site",
         "http://localhost:5173",
         "https://bitelearn.vercel.app"
     ));

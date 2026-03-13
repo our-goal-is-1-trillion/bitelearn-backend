@@ -70,8 +70,8 @@ public class OAuth2SuccessHandler extends SimpleUrlAuthenticationSuccessHandler 
     ResponseCookie cookie = ResponseCookie.from("refreshToken", refreshToken)
         .maxAge(14 * 24 * 60 * 60) // 14일
         .path("/")
-        .secure(false) // HTTPS 적용 시 true로 변경 필수
-        .sameSite("Lax") // 프론트/백엔드 도메인 상황에 따라 None 또는 Strict로 변경
+        .secure(true) // HTTPS 적용으로 true로 변경
+        .sameSite("None") // HTTPS 적용으로 None으로 변경
         .httpOnly(true)
         .build();
     response.addHeader(HttpHeaders.SET_COOKIE, cookie.toString());

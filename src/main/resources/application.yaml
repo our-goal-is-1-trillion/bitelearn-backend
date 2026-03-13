@@ -6,3 +6,5 @@ spring:
     name: bitelearn
 app:
   frontend-redirect-url: "http://localhost:5173/oauth/callback"
+server:
+  forward-headers-strategy: framework

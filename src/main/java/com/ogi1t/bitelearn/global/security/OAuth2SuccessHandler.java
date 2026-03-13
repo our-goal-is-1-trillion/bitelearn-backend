@@ -18,6 +18,7 @@ import org.springframework.http.ResponseCookie;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.web.authentication.SimpleUrlAuthenticationSuccessHandler;
 import org.springframework.stereotype.Component;
+import org.springframework.web.util.UriComponentsBuilder;
 
 @Slf4j
 @Component
@@ -76,8 +77,16 @@ public class OAuth2SuccessHandler extends SimpleUrlAuthenticationSuccessHandler 
         .build();
     response.addHeader(HttpHeaders.SET_COOKIE, cookie.toString());
 
-    // 2. Access Token을 쿼리 파라미터에 담아서 프론트엔드로 리다이렉트
-    String targetUrl = frontendRedirectUrl + accessToken;
+    // 만료 시간 설정
+    long accessTokenExpiresIn = 1800; // 1800초 (30분)
+
+    // 2. UriComponentsBuilder를 사용해 안전하게 URL 생성
+    String targetUrl = UriComponentsBuilder.fromUriString(frontendRedirectUrl)
+        .queryParam("accessToken", accessToken)
+        .queryParam("accessTokenExpiresIn", accessTokenExpiresIn)
+        .build()
+        .toUriString();
+
     getRedirectStrategy().sendRedirect(request, response, targetUrl);
   }
 }

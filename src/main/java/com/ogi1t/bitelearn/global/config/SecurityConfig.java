@@ -42,10 +42,7 @@ public class SecurityConfig {
         .csrf(AbstractHttpConfigurer::disable) // REST API이므로 csrf 보안 필요 없음
         .httpBasic(AbstractHttpConfigurer::disable) // 기본 인증 로그인 비활성화
         .formLogin(AbstractHttpConfigurer::disable) // 기본 폼 로그인 비활성화
-        .sessionManagement(session -> session.sessionCreationPolicy(SessionCreationPolicy.STATELESS))
-
-        // 세션을 사용하지 않음 (Stateless)
-        .sessionManagement(session -> session.sessionCreationPolicy(SessionCreationPolicy.STATELESS))
+        .sessionManagement(session -> session.sessionCreationPolicy(SessionCreationPolicy.STATELESS)) // 세션을 사용하지 않음 (Stateless)
 
         // 요청에 대한 권한 설정
         .authorizeHttpRequests(auth -> auth
@@ -57,6 +54,7 @@ public class SecurityConfig {
                 "/auth/**", // 소셜 관련 경로 허용
                 "/login/**", // 소셜 관련 경로 허용
                 "/oauth2/**", // 소셜 관련 경로 허용
+                "/oauth/**", // 소셜 관련 경로 허용
                 "/v3/api-docs/**", // 스웨거
                 "/swagger-ui/**", // 스웨거
                 "/swagger-ui.html") // 스웨거
@@ -67,6 +65,9 @@ public class SecurityConfig {
 
         // 소셜 로그인 설정
         .oauth2Login(oauth2 -> oauth2
+            .authorizationEndpoint(endpoint -> endpoint
+                .baseUri("/oauth/login")
+            )
             .userInfoEndpoint(userInfo -> userInfo
                 .userService(customOAuth2UserService) // 유저 정보 가져오는 서비스 등록
             )

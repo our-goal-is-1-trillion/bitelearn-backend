@@ -28,10 +28,12 @@ public class OAuth2SuccessHandler extends SimpleUrlAuthenticationSuccessHandler 
   private final JwtProvider jwtProvider;
   private final RefreshTokenRepository refreshTokenRepository;
   private final UserRepository userRepository;
-  private final ObjectMapper objectMapper;
 
   @Value("${app.frontend-redirect-url}")
   private String frontendRedirectUrl;
+
+  @Value("${jwt.access-token-expiration}")
+  private long accessTokenExpirationTime;
 
   @Override
   public void onAuthenticationSuccess(HttpServletRequest request, HttpServletResponse response, Authentication authentication) throws IOException, ServletException {
@@ -77,13 +79,10 @@ public class OAuth2SuccessHandler extends SimpleUrlAuthenticationSuccessHandler 
         .build();
     response.addHeader(HttpHeaders.SET_COOKIE, cookie.toString());
 
-    // 만료 시간 설정
-    long accessTokenExpiresIn = 1800; // 1800초 (30분)
-
     // 2. UriComponentsBuilder를 사용해 안전하게 URL 생성
     String targetUrl = UriComponentsBuilder.fromUriString(frontendRedirectUrl)
         .queryParam("accessToken", accessToken)
-        .queryParam("accessTokenExpiresIn", accessTokenExpiresIn)
+        .queryParam("accessTokenExpiresIn", accessTokenExpirationTime)
         .build()
         .toUriString();
 

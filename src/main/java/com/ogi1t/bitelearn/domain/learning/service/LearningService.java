@@ -19,6 +19,8 @@ import com.ogi1t.bitelearn.domain.learning.repository.LearningProgressRepository
 import com.ogi1t.bitelearn.domain.learning.repository.QuizRepository;
 import com.ogi1t.bitelearn.domain.learning.repository.UserQuizAnswerRepository;
 import com.ogi1t.bitelearn.domain.learning.repository.VocabularyRepository;
+import java.util.Arrays;
+import java.util.Collections;
 import java.util.List;
 import java.util.Map;
 import java.util.stream.Collectors;
@@ -65,6 +67,10 @@ public class LearningService {
   @Transactional
   public ChapterLearningResponse getChapterLearningData(Long userId, Long chapterId) {
     // 진행도가 없으면 새로 생성 (최초 진입)
+    // 챕터 기본 정보 조회
+    Chapter chapter = chapterRepository.findById(chapterId)
+        .orElseThrow(() -> new BusinessException(LearningErrorCode.CHAPTER_NOT_FOUND));
+
     LearningProgress progress = progressRepository.findByUserIdAndChapterId(userId, chapterId)
         .orElseGet(() -> progressRepository.save(new LearningProgress(userId, chapterId)));
 
@@ -77,7 +83,17 @@ public class LearningService {
         .map(QuizInfo::withoutAnswer)
         .collect(Collectors.toList());
 
+    // List 형태로 coreKeywords 를 바꿔줌
+    List<String> keywordList = Arrays.stream(chapter.getCoreKeywords().split(","))
+        .map(String::trim)
+        .collect(Collectors.toList());
+
     return ChapterLearningResponse.builder()
+        .chapterTitle(chapter.getTitle())
+        .prologueSubtitle(chapter.getPrologueSubtitle())
+        .prologueContent(chapter.getPrologueContent())
+        .currentGoal(chapter.getCurrentGoal())
+        .coreKeywords(keywordList)
         .currentStatus(progress.getStatus())
         .resumeQuizSequence(progress.getLastSolvedQuizSequence())
         .vocabs(vocabs)

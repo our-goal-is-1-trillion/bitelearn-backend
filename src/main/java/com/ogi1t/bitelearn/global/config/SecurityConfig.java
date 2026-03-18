@@ -9,6 +9,7 @@ import java.util.List;
 import lombok.RequiredArgsConstructor;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
+import org.springframework.http.HttpMethod;
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
 import org.springframework.security.config.annotation.web.configuration.EnableWebSecurity;
 import org.springframework.security.config.annotation.web.configurers.AbstractHttpConfigurer;
@@ -46,20 +47,22 @@ public class SecurityConfig {
 
         // 요청에 대한 권한 설정
         .authorizeHttpRequests(auth -> auth
+            // 챕터 목록 조회(GET)는 비회원(토큰 없음)도 접근 허용
+            .requestMatchers(HttpMethod.GET, "/learning/chapters").permitAll()
+
             // 인증 없이 접근 가능한 경로
             .requestMatchers(
                 "/index.html/**",
                 "/ws-stomp/**",
-                "/auth/**", // 소셜 관련 경로 허용
-                "/auth/**", // 소셜 관련 경로 허용
-                "/login/**", // 소셜 관련 경로 허용
-                "/oauth2/**", // 소셜 관련 경로 허용
-                "/oauth/**", // 소셜 관련 경로 허용
-                "/v3/api-docs/**", // 스웨거
-                "/swagger-ui/**", // 스웨거
-                "/swagger-ui.html") // 스웨거
+                "/auth/**",
+                "/login/**",
+                "/oauth2/**",
+                "/oauth/**",
+                "/v3/api-docs/**",
+                "/swagger-ui/**",
+                "/swagger-ui.html"
+            ).permitAll()
             // 그 외 모든 요청은 인증 필요
-            .permitAll()
             .anyRequest().authenticated()
         )
 

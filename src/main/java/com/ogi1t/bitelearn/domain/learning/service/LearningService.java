@@ -98,6 +98,8 @@ public class LearningService {
         .collect(Collectors.toList());
 
     return ChapterLearningResponse.builder()
+        .category(chapter.getCategory().name())
+        .topic(chapter.getTopic().name())
         .chapterTitle(chapter.getTitle())
         .prologueSubtitle(chapter.getPrologueSubtitle())
         .prologueContent(chapter.getPrologueContent())

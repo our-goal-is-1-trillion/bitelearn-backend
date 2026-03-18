@@ -10,8 +10,10 @@ import lombok.Getter;
 @Getter
 @Builder
 public class ChapterLearningResponse {
-  private String chapterTitle;
+  private String category;
+  private String topic;
 
+  private String chapterTitle;
   private String prologueSubtitle;
   private String prologueContent;
   private String currentGoal;

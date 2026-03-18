@@ -19,6 +19,8 @@ import com.ogi1t.bitelearn.domain.learning.repository.LearningProgressRepository
 import com.ogi1t.bitelearn.domain.learning.repository.QuizRepository;
 import com.ogi1t.bitelearn.domain.learning.repository.UserQuizAnswerRepository;
 import com.ogi1t.bitelearn.domain.learning.repository.VocabularyRepository;
+import com.ogi1t.bitelearn.global.exception.BusinessException;
+import com.ogi1t.bitelearn.global.exception.domain.LearningErrorCode;
 import java.util.Arrays;
 import java.util.Collections;
 import java.util.List;
@@ -41,16 +43,18 @@ public class LearningService {
 
   // 1. 챕터 목록 조회
   public ChapterListResponse getChaptersByCategoryAndTopic(Long userId, Category category, Topic topic) {
-    // 해당 카테고리/토픽의 챕터 목록 가져오기
     List<Chapter> chapters = chapterRepository.findByCategoryAndTopicOrderBySequenceAsc(category, topic);
-
-    // 유저의 진행도 맵으로 만들기 (매핑 속도 최적화)
     List<Long> chapterIds = chapters.stream().map(Chapter::getId).collect(Collectors.toList());
-    Map<Long, ProgressStatus> progressMap = progressRepository.findByUserIdAndChapterIdIn(userId, chapterIds)
-        .stream()
-        .collect(Collectors.toMap(LearningProgress::getChapterId, LearningProgress::getStatus));
 
-    // DTO로 변환 (진행도 정보가 없으면 기본값 READY 부여)
+    Map<Long, ProgressStatus> progressMap;
+    if (userId != null) {
+      progressMap = progressRepository.findByUserIdAndChapterIdIn(userId, chapterIds)
+          .stream()
+          .collect(Collectors.toMap(LearningProgress::getChapterId, LearningProgress::getStatus));
+    } else {
+      progressMap = Collections.emptyMap(); // 비회원은 빈 맵 처리
+    }
+
     List<ChapterListResponse.ChapterSummaryDto> chapterDtos = chapters.stream()
         .map(chapter -> new ChapterListResponse.ChapterSummaryDto(
             chapter.getId(),
@@ -66,11 +70,11 @@ public class LearningService {
   // 2. 단일 챕터 학습 데이터 조회 (진행도 자동 생성 포함)
   @Transactional
   public ChapterLearningResponse getChapterLearningData(Long userId, Long chapterId) {
-    // 진행도가 없으면 새로 생성 (최초 진입)
     // 챕터 기본 정보 조회
     Chapter chapter = chapterRepository.findById(chapterId)
         .orElseThrow(() -> new BusinessException(LearningErrorCode.CHAPTER_NOT_FOUND));
 
+    // 진행도가 없으면 새로 생성 (최초 진입) or 유저의 진행도 정보를 DB에서 꺼내옴
     LearningProgress progress = progressRepository.findByUserIdAndChapterId(userId, chapterId)
         .orElseGet(() -> progressRepository.save(new LearningProgress(userId, chapterId)));
 
@@ -82,6 +86,11 @@ public class LearningService {
     List<QuizInfo> quizzes = quizRepository.findByChapterIdOrderBySequenceAsc(chapterId).stream()
         .map(QuizInfo::withoutAnswer)
         .collect(Collectors.toList());
+
+    // 이어서 풀 문제 번호(resumeQuizSequence) 계산 로직
+    Integer nextQuizSequence = (progress.getStatus() == ProgressStatus.READY)
+        ? null
+        : progress.getLastSolvedQuizSequence() + 1;
 
     // List 형태로 coreKeywords 를 바꿔줌
     List<String> keywordList = Arrays.stream(chapter.getCoreKeywords().split(","))
@@ -95,7 +104,7 @@ public class LearningService {
         .currentGoal(chapter.getCurrentGoal())
         .coreKeywords(keywordList)
         .currentStatus(progress.getStatus())
-        .resumeQuizSequence(progress.getLastSolvedQuizSequence())
+        .resumeQuizSequence(nextQuizSequence) // 저장해둔 마지막 문제 번호 + 1 을 프론트엔드로 내려줌 (이어서 풀 문제 번호)
         .vocabs(vocabs)
         .quizzes(quizzes)
         .build();
@@ -105,36 +114,46 @@ public class LearningService {
   @Transactional
   public void completeVocabulary(Long userId, Long chapterId) {
     LearningProgress progress = progressRepository.findByUserIdAndChapterId(userId, chapterId)
-        .orElseThrow(() -> new IllegalArgumentException("진행도 정보가 없습니다."));
+        .orElseThrow(() -> new BusinessException(LearningErrorCode.PROGRESS_NOT_FOUND));
 
-    // 단어장을 다 봤으므로 퀴즈 진행 상태로 변경
     progress.startQuiz();
   }
 
   // 4. 퀴즈 제출 및 채점 (자동 저장)
   @Transactional
   public QuizSubmitResponse submitQuizAnswer(Long userId, Long chapterId, Long quizId, QuizSubmitRequest request) {
-    Quiz quiz = quizRepository.findById(quizId)
-        .orElseThrow(() -> new IllegalArgumentException("존재하지 않는 퀴즈입니다."));
+    // 방어 로직 추가: 답안이 비어있거나 null로 들어왔을 때 튕겨내기
+    if (request.getSelectedAnswer() == null || request.getSelectedAnswer().trim().isEmpty()) {
+      throw new BusinessException(LearningErrorCode.INVALID_QUIZ_SUBMISSION);
+    }
 
-    // 정답 비교
+    Quiz quiz = quizRepository.findById(quizId)
+        .orElseThrow(() -> new BusinessException(LearningErrorCode.QUIZ_NOT_FOUND));
+
+    // 유저가 보낸 답과 실제 정답 비교 (채점)
     boolean isCorrect = quiz.getCorrectAnswer().equals(request.getSelectedAnswer());
 
-    // 유저 답안 로깅
-    UserQuizAnswer answer = new UserQuizAnswer(userId, chapterId, quiz.getId(), request.getSelectedAnswer(), isCorrect);
-    answerRepository.save(answer);
+    UserQuizAnswer answer = new UserQuizAnswer(
+        userId,
+        chapterId,
+        quiz.getId(),
+        request.getSelectedAnswer(), // 유저가 고른 답
+        isCorrect                    // 정답 여부
+    );
+    answerRepository.save(answer);   // DB(user_quiz_answer 테이블)에 INSERT
 
-    // 진행도 업데이트 (이탈 시 여기부터 재개)
+    // 유저의 해당 챕터 진행도 정보를 불러옴
     LearningProgress progress = progressRepository.findByUserIdAndChapterId(userId, chapterId)
-        .orElseThrow(() -> new IllegalArgumentException("진행도 정보가 없습니다."));
+        .orElseThrow(() -> new BusinessException(LearningErrorCode.PROGRESS_NOT_FOUND));
 
     int totalQuizzes = quizRepository.countByChapterId(chapterId);
 
-    // 마지막 문제인지 확인 후 상태 업데이트
+    // 마지막 문제가 아니면 "진행 중" 상태와 함께 '방금 푼 문제 번호'를 저장함
     if (quiz.getSequence() >= totalQuizzes) {
       progress.updateProgress(quiz.getSequence(), ProgressStatus.COMPLETED);
       // TODO: (선택) 보상(바이트) 지급 로직을 여기에 추가할 수 있습니다.
     } else {
+      // 퀴즈를 풀다 나갔다면, DB에는 이 마지막 sequence 번호가 남아있게 됨
       progress.updateProgress(quiz.getSequence(), ProgressStatus.QUIZ_IN_PROGRESS);
     }
 

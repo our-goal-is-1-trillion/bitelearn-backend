@@ -13,7 +13,8 @@ public enum LearningErrorCode implements ApiCode {
   CHAPTER_NOT_FOUND(HttpStatus.NOT_FOUND.value(), 404, "존재하지 않는 챕터입니다."),
   QUIZ_NOT_FOUND(HttpStatus.NOT_FOUND.value(), 404, "존재하지 않는 퀴즈입니다."),
   PROGRESS_NOT_FOUND(HttpStatus.NOT_FOUND.value(), 404, "학습 진행도 정보를 찾을 수 없습니다."),
-  INVALID_QUIZ_SUBMISSION(HttpStatus.BAD_REQUEST.value(), 400, "잘못된 퀴즈 제출 요청입니다.");
+  INVALID_QUIZ_SUBMISSION(HttpStatus.BAD_REQUEST.value(), 400, "잘못된 퀴즈 제출 요청입니다."),
+  NOTE_NOT_FOUND(HttpStatus.NOT_FOUND.value(), 404, "존재하지 않는 오답 노트입니다.");
 
   private final Integer httpStatus;
   private final Integer code;

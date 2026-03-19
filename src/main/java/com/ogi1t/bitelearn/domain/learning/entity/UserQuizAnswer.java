@@ -15,14 +15,23 @@ public class UserQuizAnswer {
   @Id @GeneratedValue(strategy = GenerationType.IDENTITY)
   private Long id;
 
+  @Column(nullable = false)
   private Long userId;
+
+  @Column(nullable = false)
   private Long chapterId;
+
+  @Column(nullable = false)
   private Long quizId;
 
+  @Column(nullable = false, length = 500)
   private String selectedAnswer;
+
+  @Column(nullable = false)
   private boolean isCorrect;
 
   @CreationTimestamp
+  @Column(nullable = false, updatable = false)
   private LocalDateTime createdAt;
 
   @Builder

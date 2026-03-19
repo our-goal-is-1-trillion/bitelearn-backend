@@ -4,7 +4,5 @@ spring:
   # 공통 설정 (애플리케이션 이름 등)
   application:
     name: bitelearn
-app:
-  frontend-redirect-url: "http://localhost:5173/oauth/callback"
 server:
   forward-headers-strategy: framework

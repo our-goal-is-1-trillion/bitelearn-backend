@@ -165,7 +165,7 @@ public class LearningService {
   // 5. 최종 결과 조회
   public ChapterResultResponse getChapterResult(Long userId, Long chapterId) {
     int totalQuizzes = quizRepository.countByChapterId(chapterId);
-    int correctQuizzes = answerRepository.countByUserIdAndChapterIdAndIsCorrectTrue(userId, chapterId);
+    int correctQuizzes = answerRepository.countLatestCorrectAnswers(userId, chapterId);
 
     // 0으로 나누기 방지
     int accuracyRate = totalQuizzes > 0 ? (int) Math.round(((double) correctQuizzes / totalQuizzes) * 100) : 0;

@@ -23,6 +23,9 @@ public class SpecificDataInfo {
   @Builder.Default
   private List<DocumentElementInfo> documentElements = new ArrayList<>();
 
+  private String documentTitle;    // 문서 제목 (예: "[표제부]")
+  private String documentSubtitle; // 문서 부제목 (예: "(건물의 표시)")
+
   // --- 내부 클래스 ---
 
   @Getter

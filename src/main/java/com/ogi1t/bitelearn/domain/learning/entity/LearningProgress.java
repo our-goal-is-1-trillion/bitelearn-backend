@@ -25,6 +25,10 @@ public class LearningProgress {
 
   private Integer lastSolvedQuizSequence;
 
+  // 보상 수령 여부 (기본값 false)
+  @Column(nullable = false)
+  private boolean isRewarded = false;
+
   @CreationTimestamp
   private LocalDateTime createdAt;
 
@@ -48,5 +52,9 @@ public class LearningProgress {
     if (this.status == ProgressStatus.READY) {
       this.status = ProgressStatus.QUIZ_IN_PROGRESS;
     }
+  }
+
+  public void markAsRewarded() {
+    this.isRewarded = true;
   }
 }

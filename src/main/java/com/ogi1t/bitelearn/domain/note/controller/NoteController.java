@@ -20,13 +20,14 @@ public class NoteController {
 
   private final NoteService noteService;
 
-  @Operation(summary = "오답 노트 목록 조회", description = "틀린 문제(오답) 목록을 카테고리별로 조회합니다.")
+  @Operation(summary = "오답 노트 목록 조회 (무한 스크롤)", description = "틀린 문제(오답) 목록을 카테고리별로 10개씩 조회합니다. 첫 요청 시 cursor는 비워두세요.")
   @GetMapping("/incorrect")
   public ResponseEntity<IncorrectNoteListResponse> getIncorrectNotes(
       @RequestParam(required = false) Category category, // 카테고리가 없으면 전체 조회
+      @RequestParam(required = false) Long cursor,
       @AuthenticationPrincipal CustomPrincipal principal) {
 
-    IncorrectNoteListResponse response = noteService.getIncorrectNoteList(principal.getUserId(), category);
+    IncorrectNoteListResponse response = noteService.getIncorrectNoteList(principal.getUserId(), category, cursor);
     return ResponseEntity.ok(response);
   }
 

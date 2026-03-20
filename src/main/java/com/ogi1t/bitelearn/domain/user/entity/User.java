@@ -61,6 +61,30 @@ public class User {
   @Builder.Default
   private boolean isOnboardingCompleted = false;
 
+  @Column(nullable = false)
+  private int totalBytes = 0; // 유저가 보유한 총 바이트 (기본값 0)
+
+  // 바이트 적립 메서드
+  public void addBytes(int bytes) {
+    this.totalBytes += bytes;
+
+    // 방어 로직: 총 보유 바이트가 0 밑으로 떨어지지 않게 막아줌
+    if (this.totalBytes < 0) {
+      this.totalBytes = 0;
+    }
+  }
+
+  // 현재 레벨 계산 메서드 (2000 / 4000 / 6000 기준)
+  public int getLevel() {
+    if (this.totalBytes < 2000) {
+      return 1;
+    } else if (this.totalBytes < 4000) {
+      return 2;
+    } else {
+      return 3; // 4000 이상은 모두 레벨 3 (만렙)
+    }
+  }
+
   // 닉네임 변경 편의 메서드
   public void updateNickname(String newNickname) {
     this.nickname = newNickname;

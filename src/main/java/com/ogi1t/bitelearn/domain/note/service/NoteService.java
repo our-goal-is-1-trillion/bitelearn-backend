@@ -13,6 +13,8 @@ import com.ogi1t.bitelearn.global.exception.BusinessException;
 import com.ogi1t.bitelearn.global.exception.domain.LearningErrorCode;
 import java.util.List;
 import lombok.RequiredArgsConstructor;
+import org.springframework.data.domain.PageRequest;
+import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -25,26 +27,44 @@ public class NoteService {
   private final QuizRepository quizRepository;
   // private final UserRepository userRepository; // 추후 보유 바이트 연동 시 주입
 
-  // 1. 오답 노트 목록 조회
-  public IncorrectNoteListResponse getIncorrectNoteList(Long userId, Category category) {
+  // 1. 오답 노트 목록 조회 (무한 스크롤)
+  public IncorrectNoteListResponse getIncorrectNoteList(Long userId, Category category, Long cursor) {
     // 총 오답 개수
     int totalCount = answerRepository.countByUserIdAndIsCorrectFalse(userId);
     // TODO: 유저 보유 바이트 연동 로직 (임시 1250 바이트)
     int totalBytes = 1250;
 
+    // 처음 조회 시(cursor가 null) 가장 큰 값을 주어 최신 데이터부터 가져오게 함
+    Long actualCursor = (cursor == null) ? Long.MAX_VALUE : cursor;
+
+    // 다음 페이지가 있는지 확인하기 위해 요청된 10개보다 1개 더 많은 11개를 조회합니다!
+    Pageable limit = PageRequest.of(0, 11);
+
     List<IncorrectNoteDto> notes;
     if (category == null) {
       // 카테고리가 없으면 전체 오답 노트 최신순 조회
-      notes = answerRepository.findAllIncorrectNotesByUserId(userId);
+      notes = answerRepository.findAllIncorrectNotesByCursor(userId, actualCursor, limit);
     } else {
       // 카테고리가 있으면 해당 카테고리만 필터링해서 조회
-      notes = answerRepository.findIncorrectNotesByUserIdAndCategory(userId, category);
+      notes = answerRepository.findIncorrectNotesByCategoryAndCursor(userId, category, actualCursor, limit);
+    }
+
+    boolean hasNext = false;
+    Long nextCursor = null;
+
+    // 조회된 결과가 11개라면 다음 페이지가 존재한다는 의미!
+    if (notes.size() > 10) {
+      hasNext = true;
+      notes = notes.subList(0, 10); // 프론트에는 10개만 잘라서 내려줌
+      nextCursor = notes.get(9).getNoteId(); // 마지막 10번째 데이터의 ID를 다음 커서로 지정
     }
 
     return IncorrectNoteListResponse.builder()
         .totalCount(totalCount)
         .totalBytes(totalBytes)
         .notes(notes)
+        .nextCursor(nextCursor)
+        .hasNext(hasNext)
         .build();
   }
 

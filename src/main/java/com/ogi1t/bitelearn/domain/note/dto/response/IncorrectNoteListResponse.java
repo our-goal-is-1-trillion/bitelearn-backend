@@ -15,6 +15,10 @@ public class IncorrectNoteListResponse {
   private int totalBytes;
   private List<IncorrectNoteDto> notes;
 
+  // 무한 스크롤을 위한 필드 추가
+  private Long nextCursor;
+  private boolean hasNext;
+
   @Getter
   @AllArgsConstructor
   public static class IncorrectNoteDto {

@@ -19,8 +19,11 @@ import com.ogi1t.bitelearn.domain.learning.repository.LearningProgressRepository
 import com.ogi1t.bitelearn.domain.learning.repository.QuizRepository;
 import com.ogi1t.bitelearn.domain.learning.repository.UserQuizAnswerRepository;
 import com.ogi1t.bitelearn.domain.learning.repository.VocabularyRepository;
+import com.ogi1t.bitelearn.domain.user.entity.User;
+import com.ogi1t.bitelearn.domain.user.repository.UserRepository;
 import com.ogi1t.bitelearn.global.exception.BusinessException;
 import com.ogi1t.bitelearn.global.exception.domain.LearningErrorCode;
+import com.ogi1t.bitelearn.global.exception.domain.UserErrorCode;
 import java.util.Arrays;
 import java.util.Collections;
 import java.util.List;
@@ -40,6 +43,7 @@ public class LearningService {
   private final QuizRepository quizRepository;
   private final LearningProgressRepository progressRepository;
   private final UserQuizAnswerRepository answerRepository;
+  private final UserRepository userRepository;
 
   // 1. 챕터 목록 조회
   public ChapterListResponse getChaptersByCategoryAndTopic(Long userId, Category category, Topic topic) {
@@ -153,7 +157,6 @@ public class LearningService {
     // 마지막 문제가 아니면 "진행 중" 상태와 함께 '방금 푼 문제 번호'를 저장함
     if (quiz.getSequence() >= totalQuizzes) {
       progress.updateProgress(quiz.getSequence(), ProgressStatus.COMPLETED);
-      // TODO: (선택) 보상(바이트) 지급 로직을 여기에 추가할 수 있습니다.
     } else {
       // 퀴즈를 풀다 나갔다면, DB에는 이 마지막 sequence 번호가 남아있게 됨
       progress.updateProgress(quiz.getSequence(), ProgressStatus.QUIZ_IN_PROGRESS);
@@ -163,21 +166,44 @@ public class LearningService {
   }
 
   // 5. 최종 결과 조회
+  @Transactional
   public ChapterResultResponse getChapterResult(Long userId, Long chapterId) {
     int totalQuizzes = quizRepository.countByChapterId(chapterId);
     int correctQuizzes = answerRepository.countLatestCorrectAnswers(userId, chapterId);
+    int incorrectQuizzes = totalQuizzes - correctQuizzes;
 
-    // 0으로 나누기 방지
     int accuracyRate = totalQuizzes > 0 ? (int) Math.round(((double) correctQuizzes / totalQuizzes) * 100) : 0;
 
-    // 임시 보상 로직 (기획에 따라 변경 가능)
-    int earnedBytes = accuracyRate >= 80 ? 500 : 100;
+    // 유저의 진행도 정보와 회원 정보 가져오기
+    LearningProgress progress = progressRepository.findByUserIdAndChapterId(userId, chapterId)
+        .orElseThrow(() -> new BusinessException(LearningErrorCode.PROGRESS_NOT_FOUND));
+
+    User user = userRepository.findById(userId)
+        .orElseThrow(() -> new BusinessException(UserErrorCode.USER_NOT_FOUND));
+
+    final int earnedBytes;
+    final int lostBytes;
+
+    if (progress.isRewarded()) {
+      // 이미 보상을 받은 경우 둘 다 0 처리 (재대입 없이 여기서 최초 할당)
+      earnedBytes = 0;
+      lostBytes = 0;
+    } else {
+      earnedBytes = correctQuizzes * 50;
+      lostBytes = incorrectQuizzes * -20;
+
+      user.addBytes(earnedBytes + lostBytes);
+      progress.markAsRewarded();
+    }
 
     return ChapterResultResponse.builder()
         .correctCount(correctQuizzes)
         .totalCount(totalQuizzes)
         .accuracyRate(accuracyRate)
         .earnedBytes(earnedBytes)
+        .lostBytes(lostBytes)
+        .currentLevel(user.getLevel())
+        .currentTotalBytes(user.getTotalBytes())
         .build();
   }
 }

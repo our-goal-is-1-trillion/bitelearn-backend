@@ -33,4 +33,7 @@ public class Chapter {
   private String coreKeywords; // 핵심 내용 키워드
 
   private Integer sequence; // 챕터 순서 (1, 2, 3...)
+
+  @Column(columnDefinition = "TEXT")
+  private String closingMessage; // 마무리 멘트
 }

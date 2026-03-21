@@ -9,5 +9,10 @@ public class ChapterResultResponse {
   private int correctCount;
   private int totalCount;
   private int accuracyRate;
+
   private int earnedBytes;
+  private int lostBytes;
+
+  private int currentLevel;
+  private int currentTotalBytes;
 }

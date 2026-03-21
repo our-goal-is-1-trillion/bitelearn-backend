@@ -23,4 +23,6 @@ public class ChapterLearningResponse {
   private Integer resumeQuizSequence;
   private List<VocabInfo> vocabs;
   private List<QuizInfo> quizzes;
+
+  private String closingMessage;
 }

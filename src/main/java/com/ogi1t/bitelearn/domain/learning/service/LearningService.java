@@ -113,6 +113,7 @@ public class LearningService {
         .resumeQuizSequence(nextQuizSequence) // 저장해둔 마지막 문제 번호 + 1 을 프론트엔드로 내려줌 (이어서 풀 문제 번호)
         .vocabs(vocabs)
         .quizzes(quizzes)
+        .closingMessage(chapter.getClosingMessage())
         .build();
   }
 

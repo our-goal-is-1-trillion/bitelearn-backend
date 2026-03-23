@@ -22,7 +22,7 @@ public interface UserQuizAnswerRepository extends JpaRepository<UserQuizAnswer, 
 
   // 전체 오답 노트 무한 스크롤 조회 (카테고리 조건 없을 때) (uqa.id < :cursor 조건 추가, Pageable 추가)
   @Query("SELECT new com.ogi1t.bitelearn.domain.note.dto.response.IncorrectNoteListResponse$IncorrectNoteDto(" +
-      "uqa.id, c.id, q.id, c.category, c.topic, q.questionTitle, uqa.selectedAnswer, q.correctAnswer, uqa.createdAt) " +
+      "uqa.id, c.id, q.id, c.category, c.topic, c.sequence, q.questionTitle, uqa.selectedAnswer, q.correctAnswer, uqa.createdAt) " + // ✨ c.sequence 위치 변경!
       "FROM UserQuizAnswer uqa " +
       "JOIN Quiz q ON uqa.quizId = q.id " +
       "JOIN Chapter c ON uqa.chapterId = c.id " +
@@ -32,7 +32,7 @@ public interface UserQuizAnswerRepository extends JpaRepository<UserQuizAnswer, 
 
   // 특정 카테고리의 오답 노트 무한 스크롤 조회 (예: 부동산만 볼 때)
   @Query("SELECT new com.ogi1t.bitelearn.domain.note.dto.response.IncorrectNoteListResponse$IncorrectNoteDto(" +
-      "uqa.id, c.id, q.id, c.category, c.topic, q.questionTitle, uqa.selectedAnswer, q.correctAnswer, uqa.createdAt) " +
+      "uqa.id, c.id, q.id, c.category, c.topic, c.sequence, q.questionTitle, uqa.selectedAnswer, q.correctAnswer, uqa.createdAt) " + // ✨ c.sequence 위치 변경!
       "FROM UserQuizAnswer uqa " +
       "JOIN Quiz q ON uqa.quizId = q.id " +
       "JOIN Chapter c ON uqa.chapterId = c.id " +

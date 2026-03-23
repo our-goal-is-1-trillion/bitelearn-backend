@@ -61,6 +61,7 @@ public class User {
   @Builder.Default
   private boolean isOnboardingCompleted = false;
 
+  @Builder.Default
   @Column(nullable = false)
   private int totalBytes = 0; // 유저가 보유한 총 바이트 (기본값 0)
 

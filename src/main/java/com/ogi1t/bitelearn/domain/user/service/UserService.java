@@ -1,26 +1,67 @@
 package com.ogi1t.bitelearn.domain.user.service;
 
+import com.ogi1t.bitelearn.domain.learning.entity.Chapter;
+import com.ogi1t.bitelearn.domain.learning.entity.LearningProgress;
+import com.ogi1t.bitelearn.domain.learning.repository.ChapterRepository;
+import com.ogi1t.bitelearn.domain.learning.repository.LearningProgressRepository;
+import com.ogi1t.bitelearn.domain.learning.repository.QuizRepository;
 import com.ogi1t.bitelearn.domain.user.dto.request.NicknameUpdateRequest;
 import com.ogi1t.bitelearn.domain.user.dto.response.UserResponse;
 import com.ogi1t.bitelearn.domain.user.entity.User;
 import com.ogi1t.bitelearn.domain.user.repository.UserRepository;
 import com.ogi1t.bitelearn.global.exception.BusinessException;
 import com.ogi1t.bitelearn.global.exception.domain.UserErrorCode;
+import java.util.Optional;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 @Service
 @RequiredArgsConstructor
-@Transactional(readOnly = true) // 읽기 전용
+@Transactional(readOnly = true)
 public class UserService {
 
   private final UserRepository userRepository;
+  private final LearningProgressRepository progressRepository;
+  private final ChapterRepository chapterRepository;
+  private final QuizRepository quizRepository;
 
   // 1. 내 정보 조회
   public UserResponse getMyInfo(Long userId) {
     User user = findUserById(userId);
-    return UserResponse.from(user);
+
+    UserResponse.RecentLearningDto recentDto = progressRepository.findFirstByUserIdOrderByUpdatedAtDesc(userId)
+        .map(progress -> {
+
+          Chapter chapter = chapterRepository.findById(progress.getChapterId()).orElse(null);
+          if (chapter == null) return null;
+
+          int totalQuizzes = quizRepository.countByChapterId(chapter.getId());
+          int solvedQuizzes = progress.getLastSolvedQuizSequence();
+          int progressRate = (totalQuizzes == 0) ? 0 : (int) Math.round(((double) solvedQuizzes / totalQuizzes) * 100);
+
+          return UserResponse.RecentLearningDto.builder()
+              .categoryCode(chapter.getCategory().name())
+              .categoryName(chapter.getCategory().getDescription())
+              .topicCode(chapter.getTopic().name())
+              .topicName(chapter.getTopic().getDescription())
+              .chapterTitle(chapter.getTitle())
+              .chapterId(chapter.getId())
+              .progressRate(progressRate)
+              .build();
+        })
+        .orElse(null);
+
+    return UserResponse.builder()
+        .id(user.getId())
+        .email(user.getEmail())
+        .nickname(user.getNickname())
+        .providerType(user.getProviderType())
+        .isOnboardingCompleted(user.isOnboardingCompleted())
+        .level(user.getLevel())
+        .totalBytes(user.getTotalBytes())
+        .recentLearning(recentDto)
+        .build();
   }
 
   // 2. 닉네임 수정

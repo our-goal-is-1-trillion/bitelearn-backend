@@ -10,6 +10,10 @@ import lombok.Getter;
 @Getter
 @Builder
 public class ChapterLearningResponse {
+
+  private Long chapterId;
+  private Integer chapterSequence;
+
   private String category;
   private String topic;
 

@@ -10,8 +10,11 @@ import com.ogi1t.bitelearn.domain.learning.repository.UserQuizAnswerRepository;
 import com.ogi1t.bitelearn.domain.note.dto.response.IncorrectNoteDetailResponse;
 import com.ogi1t.bitelearn.domain.note.dto.response.IncorrectNoteListResponse;
 import com.ogi1t.bitelearn.domain.note.dto.response.IncorrectNoteListResponse.IncorrectNoteDto;
+import com.ogi1t.bitelearn.domain.user.entity.User;
+import com.ogi1t.bitelearn.domain.user.repository.UserRepository;
 import com.ogi1t.bitelearn.global.exception.BusinessException;
 import com.ogi1t.bitelearn.global.exception.domain.LearningErrorCode;
+import com.ogi1t.bitelearn.global.exception.domain.UserErrorCode;
 import java.util.List;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.PageRequest;
@@ -27,13 +30,17 @@ public class NoteService {
   private final UserQuizAnswerRepository answerRepository;
   private final QuizRepository quizRepository;
   private final ChapterRepository chapterRepository;
+  private final UserRepository userRepository;
 
   // 1. 오답 노트 목록 조회 (무한 스크롤)
   public IncorrectNoteListResponse getIncorrectNoteList(Long userId, Category category, Long cursor) {
     // 총 오답 개수
     int totalCount = answerRepository.countByUserIdAndIsCorrectFalse(userId);
-    // TODO: 유저 보유 바이트 연동 로직 (임시 1250 바이트)
-    int totalBytes = 1250;
+
+    // 실제 유저 정보 조회 및 보유 바이트 연동
+    User user = userRepository.findById(userId)
+        .orElseThrow(() -> new BusinessException(UserErrorCode.USER_NOT_FOUND));
+    int totalBytes = user.getTotalBytes();
 
     // 처음 조회 시(cursor가 null) 가장 큰 값을 주어 최신 데이터부터 가져오게 함
     Long actualCursor = (cursor == null) ? Long.MAX_VALUE : cursor;
@@ -89,11 +96,15 @@ public class NoteService {
         .map(chapter -> chapter.getTitle())
         .orElse("알 수 없는 챕터");
 
-    // 총 오답 개수 및 보유 바이트 (상세 화면 상단에도 그려줘야 하므로)
+    // 총 오답 개수 및 보유 바이트
     int totalCount = answerRepository.countByUserIdAndIsCorrectFalse(userId);
-    int totalBytes = 1250;
 
-    // 기존 Learning 도메인의 QuizInfo 재사용 (정답 제외 데이터 세팅)
+    // 실제 유저 정보 조회 및 보유 바이트 연동
+    User user = userRepository.findById(userId)
+        .orElseThrow(() -> new BusinessException(UserErrorCode.USER_NOT_FOUND));
+    int totalBytes = user.getTotalBytes();
+
+    // 기존 Learning 도메인의 QuizInfo 재사용
     QuizInfo reusableQuizInfo = QuizInfo.withoutAnswer(quiz);
 
     return IncorrectNoteDetailResponse.builder()

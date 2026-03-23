@@ -1,6 +1,7 @@
 package com.ogi1t.bitelearn.domain.learning.service;
 
 import com.ogi1t.bitelearn.domain.learning.dto.request.QuizSubmitRequest;
+import com.ogi1t.bitelearn.domain.learning.dto.response.CategoryTopicResponse;
 import com.ogi1t.bitelearn.domain.learning.dto.response.ChapterLearningResponse;
 import com.ogi1t.bitelearn.domain.learning.dto.response.ChapterListResponse;
 import com.ogi1t.bitelearn.domain.learning.dto.response.ChapterResultResponse;
@@ -45,7 +46,31 @@ public class LearningService {
   private final UserQuizAnswerRepository answerRepository;
   private final UserRepository userRepository;
 
-  // 1. 챕터 목록 조회
+  /**
+   * 전체 카테고리(대분류) 및 토픽(중분류) 목록 조회
+   */
+  public List<CategoryTopicResponse> getAllCategoriesAndTopics() {
+    return Arrays.stream(Category.values())
+        .map(category -> {
+          List<CategoryTopicResponse.TopicDto> topicDtos = category.getTopics().stream()
+              .map(topic -> new CategoryTopicResponse.TopicDto(
+                  topic.name(),
+                  topic.getDescription()
+              ))
+              .collect(Collectors.toList());
+
+          return CategoryTopicResponse.builder()
+              .categoryCode(category.name())
+              .categoryName(category.getDescription())
+              .topics(topicDtos)
+              .build();
+        })
+        .collect(Collectors.toList());
+  }
+
+  /**
+   * 챕터 목록 조회
+   */
   public ChapterListResponse getChaptersByCategoryAndTopic(Long userId, Category category, Topic topic) {
     List<Chapter> chapters = chapterRepository.findByCategoryAndTopicOrderBySequenceAsc(category, topic);
     List<Long> chapterIds = chapters.stream().map(Chapter::getId).collect(Collectors.toList());
@@ -71,7 +96,9 @@ public class LearningService {
     return new ChapterListResponse(chapterDtos);
   }
 
-  // 2. 단일 챕터 학습 데이터 조회 (진행도 자동 생성 포함)
+  /**
+   * 단일 챕터 학습 데이터 조회 (진행도 자동 생성 포함)
+   */
   @Transactional
   public ChapterLearningResponse getChapterLearningData(Long userId, Long chapterId) {
     // 챕터 기본 정보 조회
@@ -117,7 +144,9 @@ public class LearningService {
         .build();
   }
 
-  // 3. 단어장 완료 처리 (상태 변경)
+  /**
+   * 단어장 완료 처리 (상태 변경)
+   */
   @Transactional
   public void completeVocabulary(Long userId, Long chapterId) {
     LearningProgress progress = progressRepository.findByUserIdAndChapterId(userId, chapterId)
@@ -126,7 +155,9 @@ public class LearningService {
     progress.startQuiz();
   }
 
-  // 4. 퀴즈 제출 및 채점 (자동 저장)
+  /**
+   * 퀴즈 제출 및 채점 (자동 저장)
+   */
   @Transactional
   public QuizSubmitResponse submitQuizAnswer(Long userId, Long chapterId, Long quizId, QuizSubmitRequest request) {
     // 방어 로직 추가: 답안이 비어있거나 null로 들어왔을 때 튕겨내기
@@ -166,7 +197,9 @@ public class LearningService {
     return new QuizSubmitResponse(isCorrect, quiz.getCorrectAnswer(), quiz.getExplanation(), progress.getStatus());
   }
 
-  // 5. 최종 결과 조회
+  /**
+   * 최종 결과 조회
+   */
   @Transactional
   public ChapterResultResponse getChapterResult(Long userId, Long chapterId) {
     int totalQuizzes = quizRepository.countByChapterId(chapterId);

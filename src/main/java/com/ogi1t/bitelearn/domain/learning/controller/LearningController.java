@@ -1,6 +1,7 @@
 package com.ogi1t.bitelearn.domain.learning.controller;
 
 import com.ogi1t.bitelearn.domain.learning.dto.request.QuizSubmitRequest;
+import com.ogi1t.bitelearn.domain.learning.dto.response.CategoryTopicResponse;
 import com.ogi1t.bitelearn.domain.learning.dto.response.ChapterLearningResponse;
 import com.ogi1t.bitelearn.domain.learning.dto.response.ChapterListResponse;
 import com.ogi1t.bitelearn.domain.learning.dto.response.ChapterResultResponse;
@@ -13,6 +14,7 @@ import com.ogi1t.bitelearn.global.exception.domain.LearningErrorCode;
 import com.ogi1t.bitelearn.global.security.CustomPrincipal;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.tags.Tag;
+import java.util.List;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
@@ -20,14 +22,21 @@ import org.springframework.web.bind.annotation.*;
 
 @Tag(name = "Learning API", description = "학습 API")
 @RestController
-@RequestMapping("/learning/chapters")
+@RequestMapping("/learning")
 @RequiredArgsConstructor
 public class LearningController {
 
   private final LearningService learningService;
 
+  @Operation(summary = "전체 카테고리 및 주제 목록 조회", description = "메인 화면 구성을 위한 대분류(Category) 및 중분류(Topic) 전체 목록을 조회합니다. (비회원 접근 가능)")
+  @GetMapping("/categories")
+  public ResponseEntity<List<CategoryTopicResponse>> getAllCategoriesAndTopics() {
+    List<CategoryTopicResponse> response = learningService.getAllCategoriesAndTopics();
+    return ResponseEntity.ok(response);
+  }
+
   @Operation(summary = "챕터 목록 조회", description = "카테고리와 주제에 맞는 챕터 목록을 조회합니다. (비회원 접근 가능)")
-  @GetMapping
+  @GetMapping("/chapters")
   public ResponseEntity<ChapterListResponse> getChapters(
       @RequestParam Category category,
       @RequestParam Topic topic,
@@ -41,7 +50,7 @@ public class LearningController {
   }
 
   @Operation(summary = "단일 챕터 학습 데이터 조회", description = "챕터 진입 시 단어장과 퀴즈(정답 제외) 데이터를 조회합니다.")
-  @GetMapping("/{chapterId}")
+  @GetMapping("/chapters/{chapterId}")
   public ResponseEntity<ChapterLearningResponse> getChapterLearningData(
       @PathVariable Long chapterId,
       @AuthenticationPrincipal CustomPrincipal principal) {
@@ -56,7 +65,7 @@ public class LearningController {
   }
 
   @Operation(summary = "단어장 완료 처리", description = "단어장 학습을 마치고 퀴즈로 넘어갈 때 진행 상태를 업데이트합니다.")
-  @PostMapping("/{chapterId}/vocab-complete")
+  @PostMapping("/chapters/{chapterId}/vocab-complete")
   public ResponseEntity<Void> completeVocabulary(
       @PathVariable Long chapterId,
       @AuthenticationPrincipal CustomPrincipal principal) {
@@ -71,7 +80,7 @@ public class LearningController {
   }
 
   @Operation(summary = "퀴즈 정답 제출 및 채점", description = "한 문제의 정답을 제출하고 채점 결과를 받습니다.")
-  @PostMapping("/{chapterId}/quizzes/{quizId}")
+  @PostMapping("/chapters/{chapterId}/quizzes/{quizId}")
   public ResponseEntity<QuizSubmitResponse> submitQuiz(
       @PathVariable Long chapterId,
       @PathVariable Long quizId,
@@ -88,7 +97,7 @@ public class LearningController {
   }
 
   @Operation(summary = "챕터 최종 결과 조회", description = "챕터 학습을 마친 후 정답률과 보상 결과를 조회합니다.")
-  @GetMapping("/{chapterId}/result")
+  @GetMapping("/chapters/{chapterId}/result")
   public ResponseEntity<ChapterResultResponse> getChapterResult(
       @PathVariable Long chapterId,
       @AuthenticationPrincipal CustomPrincipal principal) {

@@ -129,6 +129,8 @@ public class LearningService {
         .collect(Collectors.toList());
 
     return ChapterLearningResponse.builder()
+        .chapterId(chapter.getId())
+        .chapterSequence(chapter.getSequence())
         .category(chapter.getCategory().name())
         .topic(chapter.getTopic().name())
         .chapterTitle(chapter.getTitle())

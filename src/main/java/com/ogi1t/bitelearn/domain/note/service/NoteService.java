@@ -26,7 +26,6 @@ public class NoteService {
 
   private final UserQuizAnswerRepository answerRepository;
   private final QuizRepository quizRepository;
-  // private final UserRepository userRepository; // 추후 보유 바이트 연동 시 주입
   private final ChapterRepository chapterRepository;
 
   // 1. 오답 노트 목록 조회 (무한 스크롤)
@@ -107,7 +106,7 @@ public class NoteService {
         .userAnswer(note.getSelectedAnswer())
         .correctAnswer(quiz.getCorrectAnswer())
         .explanation(quiz.getExplanation())
-        .quiz(reusableQuizInfo) // 프론트엔드가 그대로 재사용할 퀴즈 컴포넌트 데이터!
+        .quiz(reusableQuizInfo)
         .build();
   }
 }

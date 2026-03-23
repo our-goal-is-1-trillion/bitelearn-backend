@@ -8,4 +8,5 @@ import org.springframework.data.jpa.repository.JpaRepository;
 public interface LearningProgressRepository extends JpaRepository<LearningProgress, Long> {
   Optional<LearningProgress> findByUserIdAndChapterId(Long userId, Long chapterId);
   List<LearningProgress> findByUserIdAndChapterIdIn(Long userId, List<Long> chapterIds);
+  Optional<LearningProgress> findFirstByUserIdOrderByUpdatedAtDesc(Long userId);
 }

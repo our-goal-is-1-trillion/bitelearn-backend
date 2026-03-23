@@ -47,8 +47,8 @@ public class SecurityConfig {
 
         // 요청에 대한 권한 설정
         .authorizeHttpRequests(auth -> auth
-            // 챕터 목록 조회(GET)는 비회원(토큰 없음)도 접근 허용
-            .requestMatchers(HttpMethod.GET, "/learning/chapters").permitAll()
+            // 카테고리, 토픽, 챕터 목록 조회(GET)는 비회원(토큰 없음)도 접근 허용
+            .requestMatchers(HttpMethod.GET, "/learning/chapters", "/learning/categories").permitAll()
 
             // 인증 없이 접근 가능한 경로
             .requestMatchers(

@@ -6,3 +6,11 @@ spring:
     name: bitelearn
 server:
   forward-headers-strategy: framework
+management:
+  endpoints:
+    web:
+      exposure:
+        include: health, prometheus # 건강 상태와 프로메테우스용 데이터 오픈
+  metrics:
+    tags:
+      application: bitelearn-api # 우리 앱 이름표 달기

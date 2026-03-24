@@ -17,6 +17,7 @@
 <br>
 
 ## 🔗 Links & References
+* **🎯 [BiteLearn 서비스 직접 경험해보기 (서비스 배포 링크)](https://www.bitelearn.site)**
 * **🏠 [팀 노션 (Team Workspace)](https://www.notion.so/goormkdx/1-2eac0ff4ce31802681bbd64b9d7f8c0d)**
 * **📝 [API 명세서 (API Specification)](https://www.notion.so/goormkdx/API-2eac0ff4ce3181909832f4c10165b91b)**
 * **🚀 [배포 및 API 테스트 (Swagger UI)](https://bitelearn.site/swagger-ui/index.html)**

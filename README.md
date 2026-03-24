@@ -4,12 +4,35 @@
 <br>
 
 ## 📑 목차 (Table of Contents)
+- [🔗 Links & References](#-links--references)
+- [👥 Team & Collaboration](#-team--collaboration)
+- [🛠️ Tech Stack](#️-tech-stack)
 - [🛠️ Tech Stack](#️-tech-stack)
 - [🗄️ Database Modeling](#️-database-modeling)
 - [🏗️ System Architecture](#️-system-architecture)
 - [📁 Package Structure](#-package-structure)
 - [✨ Core Features](#-core-features)
 - [🔥 Troubleshooting](#-troubleshooting)
+
+<br>
+
+## 🔗 Links & References
+* **🏠 [팀 노션 (Team Workspace)](https://www.notion.so/goormkdx/1-2eac0ff4ce31802681bbd64b9d7f8c0d)**
+* **📝 [API 명세서 (API Specification)](https://www.notion.so/goormkdx/API-2eac0ff4ce3181909832f4c10165b91b)**
+* **🚀 [배포 및 API 테스트 (Swagger UI)](https://bitelearn.site/swagger-ui/index.html)**
+
+<br>
+
+## 👥 Team & Collaboration
+> 기획, 디자인, 프론트엔드, 백엔드가 긴밀하게 소통하며 애자일(Agile)하게 개발한 **협업 프로젝트**입니다.<br>
+> 단독 백엔드 개발자로서 시스템 아키텍처 설계부터 인프라 배포, API 개발까지 전 과정을 책임지고 수행했습니다.
+
+| 역할 (Role) | 인원 | 멤버 이름 |
+| :--- | :---: | :--- |
+| **👑 PM (Product Manager)** | 3명 | 이성민, 장세혁, 한보름 |
+| **🎨 PD (Product Designer)** | 2명 | 박시원, 은석기 |
+| **💻 FE (Front-End)** | 1명 | 최아로인 |
+| **⚙️ BE (Back-End)** | 1명 | 백유정 |
 
 <br>
 
@@ -33,7 +56,7 @@
 * **OAuth 2.0 (Google, Naver)** : 사용자 가입 이탈률 최소화 및 민감 정보 보안 리스크 외부 위임
 * **보안 최적화** : Refresh Token에 `HttpOnly`, `Secure`, `SameSite=None` 쿠키 정책을 적용하여 XSS 및 CSRF 공격 원천 방어
 
----
+<br>
 
 ## 🗄️ Database Modeling
 
@@ -50,7 +73,7 @@
 4. **Stateless 아키텍처를 보완하는 토큰 관리 (`refresh_tokens`)**
    JWT 탈취 위험 방지 및 안전한 유효기간 관리를 위해 `refresh_tokens` 테이블을 설계하고 만료 시간(`expiredAt`)을 저장하여, 서버 단에서 세션을 주도적으로 제어할 수 있는 보안 토대를 마련했습니다.
 
----
+<br>
 
 ## 🏗️ System Architecture
 
@@ -63,7 +86,7 @@
 3. **AWS S3 연동을 통한 Stateless 서버 지향**: 퀴즈 및 단어장에 사용되는 미디어 이미지 파일들을 EC2 내부에 저장하지 않고 S3로 분리하여 서버의 디스크 I/O 부하를 줄이고 Scale-out 제약 사항을 해소했습니다.
 4. **Jenkins & Docker 기반 CI/CD 파이프라인**: GitHub에 코드가 Push 되면 Webhook을 통해 Jenkins가 빌드를 트리거하고, Docker 이미지로 패키징하여 배포까지 원클릭으로 이어지는 견고한 자동화를 구축했습니다.
 
----
+<br>
 
 ## 📁 Package Structure
 
@@ -87,7 +110,7 @@ src/main/java/com/ogi1t/bitelearn
         └── dto                 # Request/Response 및 Validation(@Valid) 객체
 ```
 
----
+<br>
 
 ## ✨ Core Features
 
@@ -111,7 +134,7 @@ src/main/java/com/ogi1t/bitelearn
 * **이어하기 기능**: 마이페이지에서 가장 최근 학습 챕터와 진행률(%)을 계산하여 즉시 이어갈 수 있는 동적 데이터 응답
 * **보상 및 레벨 시스템**: 학습 완료 시 자체 재화 '바이트(Bytes)' 적립 및 누적 바이트 기반 자동 레벨 산정 로직 구현
 
----
+<br>
 
 ## 🔥 Troubleshooting
 

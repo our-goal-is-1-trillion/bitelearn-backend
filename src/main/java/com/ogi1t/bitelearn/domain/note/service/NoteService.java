@@ -13,6 +13,7 @@ import com.ogi1t.bitelearn.domain.user.entity.User;
 import com.ogi1t.bitelearn.domain.user.repository.UserRepository;
 import com.ogi1t.bitelearn.global.exception.BusinessException;
 import com.ogi1t.bitelearn.global.exception.domain.LearningErrorCode;
+import com.ogi1t.bitelearn.global.exception.domain.NoteErrorCode;
 import com.ogi1t.bitelearn.global.exception.domain.UserErrorCode;
 import java.util.List;
 import lombok.RequiredArgsConstructor;
@@ -78,11 +79,11 @@ public class NoteService {
   public IncorrectNoteDetailResponse getIncorrectNoteDetail(Long userId, Long noteId) {
     // 오답 기록 조회
     UserQuizAnswer note = answerRepository.findById(noteId)
-        .orElseThrow(() -> new BusinessException(LearningErrorCode.NOTE_NOT_FOUND));
+        .orElseThrow(() -> new BusinessException(NoteErrorCode.NOTE_NOT_FOUND));
 
     // 권한 검증 (내 오답 노트가 맞는지)
     if (!note.getUserId().equals(userId)) {
-      throw new BusinessException(LearningErrorCode.UNAUTHORIZED_ACCESS);
+      throw new BusinessException(NoteErrorCode.UNAUTHORIZED_NOTE_ACCESS);
     }
 
     // 퀴즈 원본 데이터 조회

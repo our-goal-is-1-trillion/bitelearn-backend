@@ -3,7 +3,7 @@ package com.ogi1t.bitelearn.domain.dashboard.controller;
 import com.ogi1t.bitelearn.domain.dashboard.dto.response.RecommendedChapterResponse;
 import com.ogi1t.bitelearn.domain.dashboard.service.DashboardService;
 import com.ogi1t.bitelearn.global.exception.BusinessException;
-import com.ogi1t.bitelearn.global.exception.domain.LearningErrorCode;
+import com.ogi1t.bitelearn.global.exception.domain.DashboardErrorCode;
 import com.ogi1t.bitelearn.global.security.CustomPrincipal;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.tags.Tag;
@@ -30,7 +30,7 @@ public class DashboardController {
 
     // 비회원 접근 차단 (유저의 기존 학습 기록을 기반으로 추천해야 하므로 로그인 필수)
     if (principal == null) {
-      throw new BusinessException(LearningErrorCode.UNAUTHORIZED_ACCESS);
+      throw new BusinessException(DashboardErrorCode.UNAUTHORIZED_ACCESS);
     }
 
     List<RecommendedChapterResponse> response = dashboardService.getRandomRecommendations(principal.getUserId());

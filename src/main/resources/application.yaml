@@ -1,3 +1,16 @@
 spring:
+  profiles:
+    active: prd # 기본값을 dev로 설정하면 로컬에서 실행할 때 편리해요.
+  # 공통 설정 (애플리케이션 이름 등)
   application:
     name: bitelearn
+server:
+  forward-headers-strategy: framework
+management:
+  endpoints:
+    web:
+      exposure:
+        include: health, prometheus # 건강 상태와 프로메테우스용 데이터 오픈
+  metrics:
+    tags:
+      application: bitelearn-api # 우리 앱 이름표 달기

@@ -75,4 +75,6 @@ replay_pid*
 ############################
 # ETC
 ############################
-application-dev.yaml
+application*.yml
+application*.yaml
+application.yaml

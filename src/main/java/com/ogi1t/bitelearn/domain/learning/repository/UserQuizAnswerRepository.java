@@ -41,4 +41,7 @@ public interface UserQuizAnswerRepository extends JpaRepository<UserQuizAnswer, 
   List<IncorrectNoteDto> findIncorrectNotesByCategoryAndCursor(@Param("userId") Long userId, @Param("category") Category category, @Param("cursor") Long cursor, Pageable pageable);
   // 총 오답 개수 카운트
   int countByUserIdAndIsCorrectFalse(Long userId);
+
+  @Query("SELECT DISTINCT u.chapterId FROM UserQuizAnswer u WHERE u.userId = :userId")
+  List<Long> findAttemptedChapterIdsByUserId(@Param("userId") Long userId);
 }

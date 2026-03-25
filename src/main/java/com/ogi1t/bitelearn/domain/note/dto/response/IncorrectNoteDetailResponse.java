@@ -15,7 +15,6 @@ public class IncorrectNoteDetailResponse {
   // 오답 노트 메타 정보
   private Long noteId;
   private Long chapterId;
-  private String chapterTitle;
   private LocalDateTime createdAt;
 
   // 내가 제출한 오답과 실제 정답/해설

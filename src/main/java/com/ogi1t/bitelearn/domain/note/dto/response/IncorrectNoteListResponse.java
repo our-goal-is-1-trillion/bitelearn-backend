@@ -27,6 +27,7 @@ public class IncorrectNoteListResponse {
     private Long quizId;
     private Category category;
     private Topic topic;
+    private String chapterTitle;
     private Integer chapterSequence;
     private String questionTitle;
     private String userAnswer;

@@ -20,9 +20,9 @@ public interface UserQuizAnswerRepository extends JpaRepository<UserQuizAnswer, 
       ") AND u.isCorrect = true")
   int countLatestCorrectAnswers(@Param("userId") Long userId, @Param("chapterId") Long chapterId);
 
-  // 전체 오답 노트 무한 스크롤 조회 (카테고리 조건 없을 때) (uqa.id < :cursor 조건 추가, Pageable 추가)
+  // 전체 오답 노트 무한 스크롤 조회 (카테고리 조건 없을 때)
   @Query("SELECT new com.ogi1t.bitelearn.domain.note.dto.response.IncorrectNoteListResponse$IncorrectNoteDto(" +
-      "uqa.id, c.id, q.id, c.category, c.topic, c.sequence, q.questionTitle, uqa.selectedAnswer, q.correctAnswer, uqa.createdAt) " + // ✨ c.sequence 위치 변경!
+      "uqa.id, c.id, q.id, c.category, c.topic, c.title, c.sequence, q.questionTitle, uqa.selectedAnswer, q.correctAnswer, uqa.createdAt) " +
       "FROM UserQuizAnswer uqa " +
       "JOIN Quiz q ON uqa.quizId = q.id " +
       "JOIN Chapter c ON uqa.chapterId = c.id " +
@@ -30,16 +30,15 @@ public interface UserQuizAnswerRepository extends JpaRepository<UserQuizAnswer, 
       "ORDER BY uqa.id DESC")
   List<IncorrectNoteDto> findAllIncorrectNotesByCursor(@Param("userId") Long userId, @Param("cursor") Long cursor, Pageable pageable);
 
-  // 특정 카테고리의 오답 노트 무한 스크롤 조회 (예: 부동산만 볼 때)
+  // 특정 카테고리의 오답 노트 무한 스크롤 조회
   @Query("SELECT new com.ogi1t.bitelearn.domain.note.dto.response.IncorrectNoteListResponse$IncorrectNoteDto(" +
-      "uqa.id, c.id, q.id, c.category, c.topic, c.sequence, q.questionTitle, uqa.selectedAnswer, q.correctAnswer, uqa.createdAt) " + // ✨ c.sequence 위치 변경!
+      "uqa.id, c.id, q.id, c.category, c.topic, c.title, c.sequence, q.questionTitle, uqa.selectedAnswer, q.correctAnswer, uqa.createdAt) " +
       "FROM UserQuizAnswer uqa " +
       "JOIN Quiz q ON uqa.quizId = q.id " +
       "JOIN Chapter c ON uqa.chapterId = c.id " +
       "WHERE uqa.userId = :userId AND uqa.isCorrect = false AND c.category = :category AND uqa.id < :cursor " +
       "ORDER BY uqa.id DESC")
   List<IncorrectNoteDto> findIncorrectNotesByCategoryAndCursor(@Param("userId") Long userId, @Param("category") Category category, @Param("cursor") Long cursor, Pageable pageable);
-
   // 총 오답 개수 카운트
   int countByUserIdAndIsCorrectFalse(Long userId);
 }

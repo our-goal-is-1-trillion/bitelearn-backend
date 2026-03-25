@@ -9,6 +9,10 @@ import lombok.NoArgsConstructor;
 import org.hibernate.annotations.CreationTimestamp;
 
 @Entity
+@Table(name = "user_quiz_answer", indexes = {
+    // 유저의 오답 노트를 빠르게 조회하고 최신순으로 정렬하기 위한 복합 인덱스
+    @Index(name = "idx_user_correct_id", columnList = "user_id, is_correct, id DESC")
+})
 @Getter
 @NoArgsConstructor(access = AccessLevel.PROTECTED)
 public class UserQuizAnswer {

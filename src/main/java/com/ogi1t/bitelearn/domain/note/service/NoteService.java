@@ -4,7 +4,6 @@ import com.ogi1t.bitelearn.domain.learning.dto.info.QuizInfo;
 import com.ogi1t.bitelearn.domain.learning.entity.Quiz;
 import com.ogi1t.bitelearn.domain.learning.entity.UserQuizAnswer;
 import com.ogi1t.bitelearn.domain.learning.entity.enums.Category;
-import com.ogi1t.bitelearn.domain.learning.repository.ChapterRepository;
 import com.ogi1t.bitelearn.domain.learning.repository.QuizRepository;
 import com.ogi1t.bitelearn.domain.learning.repository.UserQuizAnswerRepository;
 import com.ogi1t.bitelearn.domain.note.dto.response.IncorrectNoteDetailResponse;
@@ -29,7 +28,6 @@ public class NoteService {
 
   private final UserQuizAnswerRepository answerRepository;
   private final QuizRepository quizRepository;
-  private final ChapterRepository chapterRepository;
   private final UserRepository userRepository;
 
   // 1. 오답 노트 목록 조회 (무한 스크롤)
@@ -91,11 +89,6 @@ public class NoteService {
     Quiz quiz = quizRepository.findById(note.getQuizId())
         .orElseThrow(() -> new BusinessException(LearningErrorCode.QUIZ_NOT_FOUND));
 
-    // 챕터 아이디로 챕터 제목을 가져오기
-    String chapterTitle = chapterRepository.findById(note.getChapterId())
-        .map(chapter -> chapter.getTitle())
-        .orElse("알 수 없는 챕터");
-
     // 총 오답 개수 및 보유 바이트
     int totalCount = answerRepository.countByUserIdAndIsCorrectFalse(userId);
 
@@ -112,7 +105,6 @@ public class NoteService {
         .totalBytes(totalBytes)
         .noteId(note.getId())
         .chapterId(note.getChapterId())
-        .chapterTitle(chapterTitle)
         .createdAt(note.getCreatedAt())
         .userAnswer(note.getSelectedAnswer())
         .correctAnswer(quiz.getCorrectAnswer())
